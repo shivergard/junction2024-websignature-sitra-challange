@@ -18,13 +18,24 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const RP_ID = process.env.RP_ID;
 
 // Start authentication
-app.post('/auth/initiate', (req, res) => {
+app.post('/auth/initiate', async (req, res) => {
   const { userId } = req.body;
 
-  const options = webauthn.server.generateAuthenticationOptions({
-    rpID: RP_ID,
-    userVerification: "preferred",
-  });
+  if (!userId){
+    res.json({nope:"nope"});
+  }
+
+  //create if not defined...
+  var authDetails = await webauthn.client.authenticate({challenge:btoa(userId)});
+  if (!authDetails ){
+    authDetails = await webauthn.client.register({
+      challenge: btoa(userId),
+      user: 'John Doe'
+    })
+  }
+
+  console.log(authDetails);
+
 
   // Store challenge temporarily in memory
   challenges.set(userId, options.challenge);
