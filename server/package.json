@@ -1,0 +1,32 @@
+{
+    "name": "websignature-auth-service",
+    "version": "1.0.0",
+    "description": "insert description here",
+    "main": "src/server.js",
+    "scripts": {
+        "start": "node src/server.js",
+        "dev": "nodemon src/server.js"
+    },
+    "dependencies": {
+        "@simplewebauthn/server": "^11.0.0",
+        "body-parser": "^1.20.3",
+        "cors": "^2.8.5",
+        "dotenv": "^10.0.0",
+        "express": "^4.21.1",
+        "jsonwebtoken": "^8.5.1"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.15"
+    },
+    "engines": {
+        "node": ">=14.0.0"
+    },
+    "keywords": [
+        "webauthn",
+        "authentication",
+        "express",
+        "jwt"
+    ],
+    "author": "`Too bad with names` team",
+    "license": "MIT"
+}
