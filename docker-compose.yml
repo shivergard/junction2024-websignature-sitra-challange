@@ -15,10 +15,9 @@ services:
       - RP_ID=${RP_ID}                # Load RP_ID from .env
       - JWT_SECRET=${JWT_SECRET}      # Load JWT_SECRET from .env
     volumes:
-      - .:/usr/src/app
+      - ./server:/usr/src/app
     networks:
       - webauthn-net
-    command: tail -F /dev/null
 
 networks:
   webauthn-net:

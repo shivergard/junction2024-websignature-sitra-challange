@@ -2,7 +2,7 @@
 
 import express from 'express';
 import cors from 'cors';
-import * as webauthn from './webauthn';
+import * as webauthn from '@passwordless-id/webauthn';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
