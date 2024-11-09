@@ -1,0 +1,60 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "PolisBot/1.0.0": {
+        "dependencies": {
+          "Selenium.Support": "4.26.1",
+          "Selenium.WebDriver": "4.26.1"
+        },
+        "runtime": {
+          "PolisBot.dll": {}
+        }
+      },
+      "Selenium.Support/4.26.1": {
+        "dependencies": {
+          "Selenium.WebDriver": "4.26.1"
+        },
+        "runtime": {
+          "lib/netstandard2.0/WebDriver.Support.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.0.0"
+          }
+        }
+      },
+      "Selenium.WebDriver/4.26.1": {
+        "runtime": {
+          "lib/net8.0/WebDriver.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "PolisBot/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Selenium.Support/4.26.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-fvDpwaH0QLcrlboEyX6KR0DuK5IiHrip7V0o21zUG+dTZ3PlD9DvpAESqhnnv47083fk4Cd0Ee7JjVCpDRuFng==",
+      "path": "selenium.support/4.26.1",
+      "hashPath": "selenium.support.4.26.1.nupkg.sha512"
+    },
+    "Selenium.WebDriver/4.26.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-f0t/Oo9l2aK+znAv/McTPSz6p0fSoIYMZpkHql1ndItqu1n6PGXE1XRhziVk2zwG3RBUzEfIr6r/emkl6sP63w==",
+      "path": "selenium.webdriver/4.26.1",
+      "hashPath": "selenium.webdriver.4.26.1.nupkg.sha512"
+    }
+  }
+}
