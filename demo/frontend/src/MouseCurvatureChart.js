@@ -27,9 +27,14 @@ const MouseCurvatureChart = ({ events }) => {
 
         if (chart) return;
 
-        setChart(echarts.init(chartDom));
+        setChart(echarts.init(chartDom, null, { renderer: 'svg' }));
+        const resizeListener = () => {
+            chart?.resize();
+        };
+        window.addEventListener('resize', resizeListener, true);
 
         return () => {
+            window.removeEventListener('resize', resizeListener, true);
             chart?.dispose();
         }
     }, [chartDomRef, chart]);
