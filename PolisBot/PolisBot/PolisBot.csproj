@@ -9,6 +9,14 @@
   <ItemGroup>
     <PackageReference Include="Selenium.WebDriver" Version="4.26.1" />
     <PackageReference Include="Selenium.Support" Version="4.26.1" />
+    <None Update="PolisTopics.txt"> 
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory> 
+      <BuildAction>Content</BuildAction> 
+    </None>
+    <None Update="SpamComments.txt"> 
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory> 
+      <BuildAction>Content</BuildAction> 
+    </None>
   </ItemGroup>
 
 </Project>
