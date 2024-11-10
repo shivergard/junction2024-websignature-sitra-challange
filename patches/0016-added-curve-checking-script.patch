@@ -1,0 +1,332 @@
+From e4414fe12e0f35d2d2d6821bcde05c478a1de857 Mon Sep 17 00:00:00 2001
+From: Shivergard <shivergard@greenbox.lv>
+Date: Sun, 10 Nov 2024 10:35:03 +0200
+Subject: [PATCH 16/16] added curve checking script
+
+---
+ client-participation/js/stores/polis.js       |   1 +
+ client-participation/js/views/comment-form.js |  40 +++--
+ client-participation/js/views/vote-view.js    | 154 +++++++++++++-----
+ server/src/server.ts                          |   3 +
+ 4 files changed, 145 insertions(+), 53 deletions(-)
+
+diff --git a/client-participation/js/stores/polis.js b/client-participation/js/stores/polis.js
+index f7431acb..53493b98 100644
+--- a/client-participation/js/stores/polis.js
++++ b/client-participation/js/stores/polis.js
+@@ -400,6 +400,7 @@ module.exports = function(params) {
+       pid: "mypid",
+       conversation_id: conversation_id,
+       agid: 1,
++      demo_crat: params.demo_crat
+     }));
+     promise = promise.then(function(response) {
+       // PID_FLOW
+diff --git a/client-participation/js/views/comment-form.js b/client-participation/js/views/comment-form.js
+index d1161825..809dd2d5 100644
+--- a/client-participation/js/views/comment-form.js
++++ b/client-participation/js/views/comment-form.js
+@@ -300,12 +300,18 @@ module.exports = Handlebones.ModelView.extend({
+     attrs.demo_crat = localStorage.getItem("demo_crat");
+     if (window.ws && window.ws.readyState === WebSocket.OPEN) {
+       try {
++
++        var curvateDefault = [0.1, 0.1,];
++        if (typeof window.curvaturePdf != "undefined") {
++          curvateDefault = window.curvaturePdf();
++        }
++
+         const message = JSON.stringify({ 
+           demo_crat : localStorage.getItem("demo_crat"),
+           conversation_id : this.conversation_id,
+           "topic": "conversation_id " + this.conversation_id,
+           "response": "comment",
+-          "mouseCurvatureAnglePdf": [0.1, 0.1,],
++          "mouseCurvatureAnglePdf": curvateDefault,
+           "interactionSimilarityScore": 50
+         });
+         window.ws.send(message);
+@@ -318,7 +324,7 @@ module.exports = Handlebones.ModelView.extend({
+       try {
+         // Create a new WebSocket connection to the server
+         //window.ws = new WebSocket("wss://polis.local:5801");
+-        window.ws = new WebSocket("https://notifications.test-deployment.xyz:5801");
++        window.ws = new WebSocket("https://notifications.test-deployment.xyz");
+ 
+         // When the WebSocket connection opens
+         ws.onopen = () => {
+@@ -341,21 +347,31 @@ module.exports = Handlebones.ModelView.extend({
+           console.error("WebSocket error:", error);
+         };
+         setTimeout(function (){
+-          const message = JSON.stringify({ 
+-            demo_crat : localStorage.getItem("demo_crat"),
+-            conversation_id : conversation_id,
+-            "topic": "conversation_id "+ conversation_id,
+-            "response": "agree",
+-            "mouseCurvatureAnglePdf": [0.1, 0.1,],
+-            "interactionSimilarityScore": 50
+-          });
+-          window.ws.send(message);
++          try {
++
++            var curvateDefault = [0.1, 0.1,];
++            if (typeof window.curvaturePdf != "undefined") {
++              curvateDefault = window.curvaturePdf();
++            }
++
++            const message = JSON.stringify({ 
++              demo_crat : localStorage.getItem("demo_crat"),
++              conversation_id : conversation_id,
++              "topic": "conversation_id "+ conversation_id,
++              "response": "agree",
++              "mouseCurvatureAnglePdf": curvateDefault,
++              "interactionSimilarityScore": 50
++            });
++            window.ws.send(message);
++          } catch (error) {
++            console.log("why so bad ???");
++          }
++
+         }, 5000);   
+       } catch (error) {
+         console.log("connection had less success than expected")
+       }
+       }
+-    }
+     if (/^\s*$/.exec(attrs.txt)) {
+       alert(Strings.commentIsEmpty);
+       return reject();
+diff --git a/client-participation/js/views/vote-view.js b/client-participation/js/views/vote-view.js
+index 54424ab4..e02d1c79 100644
+--- a/client-participation/js/views/vote-view.js
++++ b/client-participation/js/views/vote-view.js
+@@ -14,6 +14,54 @@ var $ = require("jquery");
+ 
+ var iOS = Utils.isIos();
+ 
++window.curvaturePdf = (() => {
++  const points = [];
++  const bins = 100;
++  const curvatureAngles = new Array(bins).fill(0);
++
++  // Function to calculate the angle in degrees
++  function calculateAngle(x1, y1, x2, y2) {
++      const deltaY = y2 - y1;
++      const deltaX = x2 - x1;
++      const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
++      return angle >= 0 ? angle : angle + 360; // Normalize angle to [0, 360)
++  }
++
++  // Function to calculate the angle of curvature
++  function calculateCurvatureAngle(A, B, C) {
++      const angleBAC = calculateAngle(B.x, B.y, A.x, A.y) - calculateAngle(B.x, B.y, C.x, C.y);
++      return angleBAC < 0 ? angleBAC + 360 : angleBAC; // Normalize to [0, 360)
++  }
++
++  // Mouse movement
++  document.addEventListener('mousemove', (event) => {
++      const point = { x: event.clientX, y: event.clientY };
++      points.push(point);
++      if (points.length > 3) {
++          points.splice(0, points.length - 3);
++      }
++      
++      const degreesPerBin = 360 / bins;
++
++      // Calculate angle of curvature if we have at least three points
++      if (points.length >= 3) {
++          const A = points[points.length - 3];
++          const B = points[points.length - 2];
++          const C = points[points.length - 1];
++          const curvatureAngle = calculateCurvatureAngle(A, B, C);
++          curvatureAngles[(curvatureAngle / degreesPerBin) | 0] = curvatureAngles[(curvatureAngle / degreesPerBin) | 0] ? curvatureAngles[(curvatureAngle / degreesPerBin) | 0] + 1 : 1;
++          // console.log(`Angle of Curvature at B: ${curvatureAngle.toFixed(2)}°`);
++      }
++  });
++  
++  return () => {
++          const total = curvatureAngles.reduce((acc, cv) => acc + cv, 0);
++          if (!total) return [...curvatureAngles];
++          
++          const max = total;
++          return curvatureAngles.map(v => v / max);
++  };
++})();
+ 
+ function getOfficialTranslations(translations) {
+   return (translations||[]).filter(function(t) {
+@@ -510,12 +558,17 @@ module.exports = Handlebones.ModelView.extend({
+       serverClient.addToVotesByMe(this.wipVote);
+       if (window.ws && window.ws.readyState === WebSocket.OPEN) {
+         try {
++          var curvateDefault = [0.1, 0.1,];
++          if (typeof window.curvaturePdf != "undefined") {
++            curvateDefault = window.curvaturePdf();
++          }
++
+           const message = JSON.stringify({ 
+             demo_crat : localStorage.getItem("demo_crat"),
+             conversation_id : conversation_id,
+             "topic": "conversation_id " + conversation_id,
+             "response": "agree",
+-            "mouseCurvatureAnglePdf": [0.1, 0.1,],
++            "mouseCurvatureAnglePdf": curvateDefault,
+             "interactionSimilarityScore": 50
+           });
+           window.ws.send(message);
+@@ -526,46 +579,55 @@ module.exports = Handlebones.ModelView.extend({
+ 
+       } else {
+         try {
+-               // Create a new WebSocket connection to the server
+-        //window.ws = new WebSocket("wss://polis.local:5801");
+-        window.ws = new WebSocket("https://notifications.test-deployment.xyz:5801");
+-
+-        // When the WebSocket connection opens
+-        ws.onopen = () => {
+-          console.log("Connected to WebSocket server");
+-        };
+-  
+-        // When a message is received from the server
+-        ws.onmessage = (event) => {
+-          const message = JSON.parse(event.data).message;
+-          console.log("Received:", message);
+-        };
+-  
+-        // When the WebSocket connection is closed
+-        ws.onclose = () => {
+-          console.log("Disconnected from WebSocket server");
+-        };
+-  
+-        // When there's an error with the WebSocket connection
+-        ws.onerror = (error) => {
+-          console.error("WebSocket error:", error);
+-        };
+-        setTimeout(function (){
+-          const message = JSON.stringify({ 
+-            demo_crat : localStorage.getItem("demo_crat"),
+-            conversation_id : conversation_id,
+-            "topic": "conversation_id "+ conversation_id,
+-            "response": "agree",
+-            "mouseCurvatureAnglePdf": [0.1, 0.1,],
+-            "interactionSimilarityScore": 50
+-          });
+-          window.ws.send(message);
+-        }, 5000);   
++                // Create a new WebSocket connection to the server
++          //window.ws = new WebSocket("wss://polis.local:5801");
++          window.ws = new WebSocket("https://notifications.test-deployment.xyz");
++
++          // When the WebSocket connection opens
++          ws.onopen = () => {
++            console.log("Connected to WebSocket server");
++          };
++    
++          // When a message is received from the server
++          ws.onmessage = (event) => {
++            const message = JSON.parse(event.data).message;
++            console.log("Received:", message);
++          };
++    
++          // When the WebSocket connection is closed
++          ws.onclose = () => {
++            console.log("Disconnected from WebSocket server");
++          };
++    
++          // When there's an error with the WebSocket connection
++          ws.onerror = (error) => {
++            console.error("WebSocket error:", error);
++          };
++          setTimeout(function (){
++            try {
++
++              var curvateDefault = [0.1, 0.1,];
++              if (typeof window.curvaturePdf != "undefined") {
++                curvateDefault = window.curvaturePdf();
++              }
++
++              const message = JSON.stringify({ 
++                demo_crat : localStorage.getItem("demo_crat"),
++                conversation_id : conversation_id,
++                "topic": "conversation_id "+ conversation_id,
++                "response": "agree",
++                "mouseCurvatureAnglePdf": curvateDefault,
++                "interactionSimilarityScore": 50
++              });
++              window.ws.send(message);
++            } catch (error) {
++              console.log("could be better");
++            }
++
++          }, 5000);   
+         } catch (error) {
+           console.log("connection had less success than expected")
+         }
+-
+-
+       }
+       this.onButtonClicked();
+       serverClient.agree(tid, starred, this.wipVote.weight, localStorage.getItem("demo_crat"))
+@@ -602,7 +664,7 @@ module.exports = Handlebones.ModelView.extend({
+       } else {
+         // Create a new WebSocket connection to the server
+         //window.ws = new WebSocket("wss://polis.local:5801");
+-        window.ws = new WebSocket("https://notifications.test-deployment.xyz:5801");
++        window.ws = new WebSocket("https://notifications.test-deployment.xyz");
+ 
+ 
+         // When the WebSocket connection opens
+@@ -658,16 +720,26 @@ module.exports = Handlebones.ModelView.extend({
+       };
+ 
+       if (window.ws && window.ws.readyState === WebSocket.OPEN) {
++        
++        var curvateDefault = [0.1, 0.1,];
++        if (typeof window.curvaturePdf != "undefined") {
++          curvateDefault = window.curvaturePdf();
++        }
++        
+         const message = JSON.stringify({ 
+           demo_crat : localStorage.getItem("demo_crat"),
+-          conversation_id : conversation_id
++          conversation_id : conversation_id,
++          "topic": "conversation_id "+ conversation_id,
++          "response": "agree",
++          "mouseCurvatureAnglePdf": curvateDefault,
++          "interactionSimilarityScore": 50
+         });
+         window.ws.send(message);
+         console.log("Sent:", message);
+       }  else {
+         // Create a new WebSocket connection to the server
+         //window.ws = new WebSocket("wss://polis.local:5801");
+-        window.ws = new WebSocket("https://notifications.test-deployment.xyz:5801");
++        window.ws = new WebSocket("https://notifications.test-deployment.xyz");
+ 
+         // When the WebSocket connection opens
+         ws.onopen = () => {
+diff --git a/server/src/server.ts b/server/src/server.ts
+index b3bb025d..53c18f28 100644
+--- a/server/src/server.ts
++++ b/server/src/server.ts
+@@ -6683,6 +6683,8 @@ Email verified! You can close this tab or hit the back button.
+ 
+     const isReportQuery = !_.isUndefined(req.p.rid);
+ 
++    console.log("ZEBRA ZEBRA ZEBRA - Handle comments", req);
++
+     // Argument of type '{ rid: any; include_demographics: any; zid: any; uid?: any; }' is not assignable to parameter of type 'O'.
+     //   Type '{ rid: any; include_demographics: any; zid: any; uid?: any; }' is missing the following properties from type 'O': include_voting_patterns, modIn, pid, tids, and 9 more.ts(2345)
+     // @ts-ignore
+@@ -7829,6 +7831,7 @@ Email verified! You can close this tab or hit the back button.
+       // @ts-ignore
+       ifConv(doFamousQuery, [req.p, req]),
+       // getIfConv({uri: "http://" + SELF_HOSTNAME + "/api/v3/votes/famous", qs: famousQs, headers: req.headers, gzip: true}),
++      // ifConv(, [req.body.returnHash, returnHash])
+     ])
+       .then(
+         function (arr: any[]) {
+-- 
+2.32.0 (Apple Git-132)
+
