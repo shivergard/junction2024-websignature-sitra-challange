@@ -3,6 +3,8 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.DevTools.V128.Profiler;
 using System;
 using OpenQA.Selenium.Support.UI;
+using OpenQA.Selenium.Internal;
+using System.Collections.Generic;
 
 namespace SeleniumTest
 {
@@ -11,23 +13,23 @@ namespace SeleniumTest
         static void Main(string[] args)
         {
             
-            
-            string[] urls = {
-                "https://polis.local/8kmmwtitki",
-                "https://polis.local/3vjedh4nha",
-                "https://polis.local/25ekjajfib"
-            };
+            string[] urls = File.ReadAllLines("PolisTopics.txt").Select(s=>$"https://polis.local/{s}").ToArray();
 
-            Dictionary<string,bool> commentFound = new Dictionary<string, bool>{
-                {"Vote for cookie monster",false},
-                {"Yellow elephant is a loser", false}
-                };
+            Dictionary<string,bool> commentFound = File.ReadAllLines("SpamComments.txt").ToDictionary(s=>s,s=>false);
 
-            for(int j = 0; j < 11; j++)
+            int spamAttempts = 11;
+
+            for(int j = 0; j < spamAttempts; j++)
             {
                 var options = new ChromeOptions();
                 options.AddArgument("--ignore-certificate-errors");
                 options.AddArgument("--ignore-ssl-errors=yes");
+                options.SetLoggingPreference(LogType.Browser,LogLevel.All);
+                //options.SetLoggingPreference(LogType.Client,LogLevel.All);
+                options.SetLoggingPreference(LogType.Driver,LogLevel.All);
+                options.SetLoggingPreference(LogType.Performance,LogLevel.All);
+                //options.SetLoggingPreference(LogType.Profiler,LogLevel.All);
+                //options.SetLoggingPreference(LogType.Server,LogLevel.All);
                 IWebDriver driver = new ChromeDriver(options);
 
                 foreach (var url in urls)
@@ -35,12 +37,6 @@ namespace SeleniumTest
                     driver.Navigate().GoToUrl(url);
                     Thread.Sleep(2000);
 
-                    //foreach(string comment in commentFound.Keys)
-                    //{
-                    //    commentFound[comment]=false;
-                    //}
-
-                    // driver.FindElement(By.CssSelector("[data-view-name='vote-view']"))
                     int votes = int.Parse(FindElement(driver,By.Id("comment_shower")).FindElement(By.CssSelector("span:last-of-type")).Text.Trim().Split()[0]);
                     for(int i = 0; i < votes; i++){
                         string text = "";
@@ -78,6 +74,20 @@ namespace SeleniumTest
                     }
                     
                 }
+                List<LogEntry> le = driver.Manage().Logs.GetLog(LogType.Browser).ToList();
+                string eventClickString = "EVENT=Click ";
+                int eventLength = eventClickString.Length;
+                
+                File.AppendAllLines($"C:\\PolisBotLog\\LogEventClick",
+                le.Where(l=>l.Message.Split('\"')[1].StartsWith(eventClickString))
+                .Select(l=>$"{l.Timestamp} {l.Message.Split('\"')[1].Split(' ',2)[1]}"));
+
+                foreach(string lt in new string[]{LogType.Browser,/*LogType.Client,*/LogType.Driver,LogType.Performance,/*LogType.Profiler,LogType.Server*/}){
+                    List<LogEntry> logEntries = driver.Manage().Logs.GetLog(lt).ToList();
+                    //File.WriteAllLines($"C:\\PolisBotLog\\Log{lt}T{DateTime.Now.ToString("ddMMyyyy_HHmmss")}i{j}",logEntries.Select(l=>l.ToString()));
+                    File.AppendAllLines($"C:\\PolisBotLog\\Log{lt}",logEntries.Select(l=>l.ToString()));
+                    
+                }
                 driver.Quit();
             }
             
@@ -107,4 +117,51 @@ namespace SeleniumTest
         }
     }
 }
+
+/*
+string[] urls = {
+    "https://polis.local/2dpva56epm",
+    "https://polis.local/8vyycema7m",
+    "https://polis.local/9yjh8wmmvd"
+};
+*/
+/*
+Dictionary<string,bool> commentFound = new Dictionary<string, bool>{
+    {"Vote for cookie monster",false},
+    {"Yellow elephant is a loser", false}
+    };
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

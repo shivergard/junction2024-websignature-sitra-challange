@@ -30,7 +30,10 @@ const eventSource = (() => {
   let intervalId;
 
   socket.onmessage = (event) => {
-    event.data.text().then((data) => messageChannel.port1.postMessage(data), (error) => {
+    new Blob([event.data]).text().then((data) => {
+      if (data === 'PONG') return;
+      messageChannel.port1.postMessage(data);
+    }, (error) => {
       console.error('Error receiving message', error);
     });
   };

@@ -1,6 +1,6 @@
 const Card = ({ topic, response }) => {
     return (
-        <figure class="Card">
+        <figure className="Card">
             <div>
                 <h2>{topic} {response === 'agree' ? '✅' : response === 'disagree' ? '❌' : '⏭️'}</h2>
             </div>

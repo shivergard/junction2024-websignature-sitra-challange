@@ -41,3 +41,5 @@ c:\Users\meram\OneDrive\Desktop\Junction2024\junction2024-websignature-sitra-cha
 c:\Users\meram\OneDrive\Desktop\Junction2024\junction2024-websignature-sitra-challange\PolisBot\PolisBot\obj\Debug\net8.0\PolisBot.pdb
 c:\Users\meram\OneDrive\Desktop\Junction2024\junction2024-websignature-sitra-challange\PolisBot\PolisBot\obj\Debug\net8.0\PolisBot.genruntimeconfig.cache
 c:\Users\meram\OneDrive\Desktop\Junction2024\junction2024-websignature-sitra-challange\PolisBot\PolisBot\obj\Debug\net8.0\ref\PolisBot.dll
+c:\Users\meram\OneDrive\Desktop\Junction2024\junction2024-websignature-sitra-challange\PolisBot\PolisBot\bin\Debug\net8.0\PolisTopics.txt
+c:\Users\meram\OneDrive\Desktop\Junction2024\junction2024-websignature-sitra-challange\PolisBot\PolisBot\bin\Debug\net8.0\SpamComments.txt
