@@ -27,17 +27,27 @@ const eventSource = (() => {
   const messageChannel = new MessageChannel();
   messageChannel.port2.start();
 
+  let intervalId;
 
   socket.onmessage = (event) => {
-    messageChannel.port1.postMessage(event.data);
+    event.data.text().then((data) => messageChannel.port1.postMessage(data), (error) => {
+      console.error('Error receiving message', error);
+    });
   };
 
   socket.onopen = () => {
     socket.send('DASHBOARD');
+    intervalId = setInterval(() => {
+      socket.send('PING');
+    }, 5000);
   };
 
   socket.onclose = () => {
     console.log('Disconnected from server');
+    if (intervalId != null) {
+      clearInterval(intervalId);
+      intervalId = undefined;
+    }
   };
 
   socket.onerror = (error) => {

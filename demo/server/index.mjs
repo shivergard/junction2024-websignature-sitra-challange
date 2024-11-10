@@ -6,8 +6,10 @@ const recvSet = new Set();
 
 wss.on('connection', (ws) => {
   ws.on('message', (message) => {
-    if (message === 'DASHBOARD') {
+    if (message.byteLength === 8 && message.toString() === 'DASHBOARD') {
       recvSet.add(ws);
+    } else if (message.byteLength === 4 && message.toString() === 'PING') {
+      ws.send(Buffer.from('PONG'))
     } else {
       [...recvSet].forEach((ws) => {
         ws.send(message);
