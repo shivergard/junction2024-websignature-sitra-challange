@@ -1,0 +1,17 @@
+// Collect Browser Info
+function getBrowserInfo() {
+  return {
+    userAgent: navigator.userAgent,
+    screenResolution: `${window.screen.width}x${window.screen.height}`,
+    browserName: navigator.appName,
+    platform: navigator.platform,
+  };
+}
+
+// Collect Behavior Info
+function getUserBehavior() {
+  let mouseMovements = [];
+  document.onmousemove = (e) => mouseMovements.push({ x: e.clientX, y: e.clientY });
+
+  return { mouseMovements, // add other tracking methods here }
+}

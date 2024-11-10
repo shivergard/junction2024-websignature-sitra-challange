@@ -1,0 +1,17 @@
+<script src="https://your-server.com/path/to/auth-sdk.js"></script>
+<script>
+  const authService = new WebAuthnAuthService({ authUrl: 'https://your-server.com' });
+
+  // Call this when the user wants to log in
+  async function loginUser() {
+    const result = await authService.login('example-user-id');
+    if (result.success) {
+      console.log('User authenticated, token:', result.token);
+      // Use this token for API requests or session management
+    } else {
+      console.log('Authentication failed');
+    }
+  }
+
+  loginUser(); // Start login process
+</script>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mouse Event Metrics</title>
+    <style>
+        body {
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+        
+        .chart {
+            display: block;
+            padding: 0;
+            margin: 0.5em;
+            border: 0;
+            height: 5em;
+            width: auto;
+            box-sizing: border-box;
+            background-color: white;
+            
+        }
+        
+        .chart div {
+            display: block-inline;
+            padding: 0;
+            margin: 0;
+            border: 0;
+            background-color: black;
+            width: 0.277%;
+            float: left;
+            height: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="chart" id="directionsCDF">
+    </div>
+    
+    <textarea readonly id="directionsPDF"></textarea>
+    <textarea id="directionsPDF2"></textarea>
+    <p>Distance: <span id="directionsDistance"></span></p>
+    
+    <div class="chart" id="curvatureAngles">
+    </div>
+    
+    <textarea readonly id="curvatureAnglesPDF"></textarea>
+    <textarea id="curvatureAnglesPDF2"></textarea>
+    <p>Distance: <span id="directionsCurvatureDistance"></span></p>
+
+    <script>
+        // Implements collection and preprocessing from "An Efficient User Verification System via Mouse Movements" (N. Zheng et al.)
+        const points = [];
+        const directions = new Array(360).fill(0);
+        const curvatureAngles = new Array(360).fill(0);
+
+        // Function to calculate the angle in degrees
+        function calculateAngle(x1, y1, x2, y2) {
+            const deltaY = y2 - y1;
+            const deltaX = x2 - x1;
+            const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+            return angle >= 0 ? angle : angle + 360; // Normalize angle to [0, 360)
+        }
+
+        // Function to calculate the angle of curvature
+        function calculateCurvatureAngle(A, B, C) {
+            const angleAB = calculateAngle(A.x, A.y, B.x, B.y);
+            const angleBC = calculateAngle(B.x, B.y, C.x, C.y);
+            const curvatureAngle = angleBC - angleAB;
+            return curvatureAngle < 0 ? curvatureAngle + 360 : curvatureAngle; // Normalize to [0, 360)
+        }
+
+        // Mouse move event listener
+        document.addEventListener('mousemove', (event) => {
+            const point = { x: event.clientX, y: event.clientY };
+            points.push(point);
+
+            // Calculate direction if we have at least two points
+            if (points.length >= 2) {
+                const A = points[points.length - 2];
+                const B = points[points.length - 1];
+                const direction = calculateAngle(A.x, A.y, B.x, B.y);
+                directions[direction | 0] = directions[direction | 0] ? directions[direction | 0] + 1 : 1;
+                // console.log(`Direction from A to B: ${direction.toFixed(2)}°`);
+            }
+
+            // Calculate angle of curvature if we have at least three points
+            if (points.length >= 3) {
+                const A = points[points.length - 3];
+                const B = points[points.length - 2];
+                const C = points[points.length - 1];
+                const curvatureAngle = calculateCurvatureAngle(A, B, C);
+                curvatureAngles[curvatureAngle | 0] = directions[curvatureAngle | 0] ? directions[curvatureAngle | 0] + 1 : 1;
+                // console.log(`Angle of Curvature at B: ${curvatureAngle.toFixed(2)}°`);
+            }
+        });
+        
+        const directionsPdf = document.getElementById("directionsPDF");
+        const directionsPdf2 = document.getElementById("directionsPDF2");
+        const curvatureAnglesPdf = document.getElementById("curvatureAnglesPDF");
+        const curvatureAnglesPdf2 = document.getElementById("curvatureAnglesPDF2");
+        
+        (() => {
+            const directionsCdf = document.getElementById("directionsCDF");
+            const directionsCdfV = new Array(360);
+
+            for (let i = 0; i < 360; i++) {
+                directionsCdfV[i] = document.createElement("div");
+                directionsCdf.appendChild(directionsCdfV[i]);
+            }
+            
+            setInterval(() => {
+                const total = directions.reduce((acc, cv) => acc + cv, 0);
+                if (!total) return;
+                let acc = 0;
+                const nd = directions.map((v) => {
+                    acc += v;
+                    return (acc / total * 100);
+                }).forEach((v, i) => {
+                    directionsCdfV[i].style.height = `${v}%`;
+                });
+                
+                const max = total // Math.max(...directions);
+                directionsPdf.value = JSON.stringify(directions.map(v => v / max));
+            }, 500);
+        })();
+        
+        (() => {
+            const curvatureAnglesCdf = document.getElementById("curvatureAngles");
+            const curvatureAnglesCdfV = new Array(360);
+
+            for (let i = 0; i < 360; i++) {
+                curvatureAnglesCdfV[i] = document.createElement("div");
+                curvatureAnglesCdf.appendChild(curvatureAnglesCdfV[i]);
+            }
+            
+            setInterval(() => {
+                const total = curvatureAngles.reduce((acc, cv) => acc + cv, 0);
+                if (!total) return;
+                let acc = 0;
+                const nd = curvatureAngles.map((v) => {
+                    acc += v;
+                    return (acc / total * 100);
+                }).forEach((v, i) => {
+                    curvatureAnglesCdfV[i].style.height = `${v}%`;
+                });
+                
+                const max = total // Math.max(...directions);
+                curvatureAnglesPdf.value = JSON.stringify(directions.map(v => v / max));
+            }, 500);
+        })();
+        
+        directionsPdf2.addEventListener("input", () => {
+            try {
+                const arr1 = JSON.parse(directionsPdf.value);
+                const arr2 = JSON.parse(directionsPdf2.value);
+                let distance = 0;
+                
+                for (let i = 0; i < 360; i++) {
+                    distance += Math.abs(arr1[i] - arr2[i]);
+                }
+                
+                const directionsDistance = document.getElementById("directionsDistance");
+                directionsDistance.textContent = distance.toFixed(2);
+            } catch (e) { console.error(e) }
+        });
+        
+        curvatureAnglesPdf2.addEventListener("input", () => {
+            try {
+                const arr1 = JSON.parse(curvatureAnglesPdf.value);
+                const arr2 = JSON.parse(curvatureAnglesPdf2.value);
+                let distance = 0;
+                
+                for (let i = 0; i < 360; i++) {
+                    distance += Math.abs(arr1[i] - arr2[i]);
+                }
+                
+                const directionsCurvatureDistance = document.getElementById("directionsCurvatureDistance");
+                directionsCurvatureDistance.textContent = distance.toFixed(2);
+            } catch (e) { console.error(e) }
+        });
+
+
+    </script>
+</body>
+</html>

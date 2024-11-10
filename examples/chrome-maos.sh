@@ -1,0 +1,1 @@
+open -na "Google Chrome" --args --ignore-certificate-errorsgit 
