@@ -1,0 +1,176 @@
+From b07aac46540ab581e804ca3379be829b46cfa3e0 Mon Sep 17 00:00:00 2001
+From: Shivergard <shivergard@greenbox.lv>
+Date: Sat, 9 Nov 2024 16:40:03 +0200
+Subject: [PATCH 14/14] gather information about browser details
+
+---
+ client-participation/api/embed.js     |  8 +++
+ client-participation/public/index.ejs |  3 +
+ server/src/server.ts                  | 87 ++++++++++++++-------------
+ 3 files changed, 55 insertions(+), 43 deletions(-)
+
+diff --git a/client-participation/api/embed.js b/client-participation/api/embed.js
+index ee4b7e5e..73d772dd 100644
+--- a/client-participation/api/embed.js
++++ b/client-participation/api/embed.js
+@@ -117,6 +117,9 @@
+       alert("Error: need data-conversation_id or data-site_id");
+       return;
+     }
++
++    // add browser resolution data here ....
++
+     var src = serviceUrl+ "/" + path.join("/");
+ 
+     appendIfPresent("parent_url");
+@@ -124,6 +127,11 @@
+       paramStrings.push("referrer="+ encodeURIComponent(document.referrer));
+     }
+ 
++    paramStrings.push("screen_height="+ encodeURIComponent(window.screen.height));
++    paramStrings.push("screen_width="+ encodeURIComponent(window.screen.width));
++
++    console.log("zebra zebra zebra", paramStrings);
++
+     appendIfPresent("xid");
+     appendIfPresent("x_name");
+     appendIfPresent("x_profile_image_url");
+diff --git a/client-participation/public/index.ejs b/client-participation/public/index.ejs
+index 215e2aa5..effe4243 100644
+--- a/client-participation/public/index.ejs
++++ b/client-participation/public/index.ejs
+@@ -191,6 +191,9 @@
+         }
+         qp.push("pid=mypid");
+ 
++        qp.push("screen_height=" + window.screen.height);
++        qp.push("screen_width=" + window.screen.width);
++
+         var xid = getXid();
+         if (typeof xid !== "undefined") {
+           window.preload.xid = xid;
+diff --git a/server/src/server.ts b/server/src/server.ts
+index 23ceeaa3..be95f397 100644
+--- a/server/src/server.ts
++++ b/server/src/server.ts
+@@ -7663,7 +7663,12 @@ Email verified! You can close this tab or hit the back button.
+         xid: any;
+         owner_uid?: any;
+         pid: any;
++
+       };
++      body: {
++        screen_height: any;
++        screen_width: any;
++      }
+       headers?: Headers;
+       cookies: { [x: string]: any };
+     },
+@@ -7690,51 +7695,45 @@ Email verified! You can close this tab or hit the back button.
+       };
+     }
+   ) {
+-    logger.info("handle_GET_participationInit");
+-    // let qs = {
+-    //   conversation_id: req.p.conversation_id,
+-    // };
+-
+-    // let nextCommentQs = Object.assign({}, qs, {
+-    //   not_voted_by_pid: "mypid",
+-    //   limit: 1,
+-    //   include_social: true,
+-    // });
+-
+-    // let votesByMeQs = Object.assign({}, req.p, {
+-    //   pid: "mypid",
+-    // });
+-
+-    // let famousQs = req.p.ptptoiLimit ? Object.assign({}, qs, {
+-    //   ptptoiLimit: req.p.ptptoiLimit,
+-    // }) : qs;
+-
+-    // function getIfConv() {
+-    //   if (qs.conversation_id) {
+-    //     return request.get.apply(request, arguments);
+-    //   } else {
+-    //     return Promise.resolve("null");
+-    //   }
+-    // }
+-
+-    // function getIfConvAndAuth() {
+-    //   if (req.p.uid) {
+-    //     return getIfConv.apply(0, arguments);
+-    //   } else {
+-    //     return Promise.resolve("null");
+-    //   }
+-    // }
+ 
+-    // function getWith304AsSuccess() {
+-    //   return getIfConv.apply(0, arguments).catch(function(foo) {
+-    //     if (foo.statusCode === 304) {
+-    //       return "null";
+-    //     } else {
+-    //       throw foo;
+-    //     }
+-    //   });
+-    // }
++    if (typeof req.headers != "undefined"){
++      console.log("ZEBRA ZEBRA ZEBRA");
++      console.log("ZEBRA", req.p);
++  
++      // do simpleField : 
++      // Ronalds had to do ...
++      ;
++      var hashable = {
++        browser_type : req.headers["user-agent"],
++        operating_system : req.headers["sec-ch-ua-platform"],
++        screen_size : req.body.screen_height + "x" + req.body.screen_width
++      }
++
++      console.log(hashable);
++    }
++
++    /**
++     * {
++        'x-forwarded-proto': 'https',
++        host: 'polis.local',
++        connection: 'close',
++        'sec-ch-ua-platform': '"macOS"',
++        'accept-language': 'en-GB,en;q=0.9',
++        'sec-ch-ua': '"Chromium";v="130", "Google Chrome";v="130", "Not?A_Brand";v="99"',
++        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
++        'sec-ch-ua-mobile': '?0',
++        accept: '* / *',
++        'sec-fetch-site': 'same-origin',
++        'sec-fetch-mode': 'cors',
++        'sec-fetch-dest': 'empty',
++        referer: 'https://polis.local/8ph94he2mv?site_id=polis_site_id_De3Plz2bIsZVlj1S59&page_id=PAGE_ID&parent_url=http%3A%2F%2Flocalhost%3A8000%2Fintegration.html',
++        'accept-encoding': 'gzip, deflate, br, zstd',
++        priority: 'u=1, i'
++      }
++     */
++    logger.info("handle_GET_participationInit");
+ 
++    // _participationInit ifConv
+     function ifConv(
+       f: {
+         (
+@@ -7759,6 +7758,7 @@ Email verified! You can close this tab or hit the back button.
+       }
+     }
+ 
++    // ifConvAndAuth in auth
+     function ifConvAndAuth(f: (zid: any, uid?: any) => any, args: any[]) {
+       if (req.p.uid) {
+         return ifConv(f, args);
+@@ -7780,6 +7780,7 @@ Email verified! You can close this tab or hit the back button.
+ 
+     getPermanentCookieAndEnsureItIsSet(req, res);
+ 
++    // many promises ...
+     Promise.all([
+       // request.get({uri: "http://" + SELF_HOSTNAME + "/api/v3/users", qs: qs, headers: req.headers, gzip: true}),
+       getUser(req.p.uid, req.p.zid, req.p.xid, req.p.owner_uid),
+-- 
+2.32.0 (Apple Git-132)
+

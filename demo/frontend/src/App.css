@@ -1,0 +1,61 @@
+html, body {
+  background-color: white;
+  color: black;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+figure {
+  border: 1px solid black;
+}
+
+legend {
+  text-align: center;
+  background-color: azure;
+  padding: 0.5em;
+  /* margin-top: -1em; */
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+}
+
+.App {
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 0.75fr 1.25fr;
+  gap: 0px 0px;
+  grid-auto-flow: row;
+  grid-template-areas:
+    "C1 C1 Card"
+    "C2 C2 Card";
+}
+
+.C1 {
+  grid-area: C1;
+  display: flex;
+  flex-direction: column;
+}
+
+.C1 > div {
+  flex-grow: 1;
+}
+
+.C2 {
+  grid-area: C2;
+  display: flex;
+  flex-direction: column;
+}
+
+.C2 > div {
+  flex-grow: 1;
+}
+
+.Card {
+  grid-area: Card;
+  padding: 1em;
+}
