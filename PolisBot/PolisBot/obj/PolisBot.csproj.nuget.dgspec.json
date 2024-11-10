@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\meram\\OneDrive\\Desktop\\Junction2024\\junction2024-websignature-sitra-challange\\PolisBot\\PolisBot\\PolisBot.csproj": {}
+    "c:\\Users\\meram\\OneDrive\\Desktop\\Junction2024\\junction2024-websignature-sitra-challange\\PolisBot\\PolisBot\\PolisBot.csproj": {}
   },
   "projects": {
-    "C:\\Users\\meram\\OneDrive\\Desktop\\Junction2024\\junction2024-websignature-sitra-challange\\PolisBot\\PolisBot\\PolisBot.csproj": {
+    "c:\\Users\\meram\\OneDrive\\Desktop\\Junction2024\\junction2024-websignature-sitra-challange\\PolisBot\\PolisBot\\PolisBot.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\meram\\OneDrive\\Desktop\\Junction2024\\junction2024-websignature-sitra-challange\\PolisBot\\PolisBot\\PolisBot.csproj",
+        "projectUniqueName": "c:\\Users\\meram\\OneDrive\\Desktop\\Junction2024\\junction2024-websignature-sitra-challange\\PolisBot\\PolisBot\\PolisBot.csproj",
         "projectName": "PolisBot",
-        "projectPath": "C:\\Users\\meram\\OneDrive\\Desktop\\Junction2024\\junction2024-websignature-sitra-challange\\PolisBot\\PolisBot\\PolisBot.csproj",
+        "projectPath": "c:\\Users\\meram\\OneDrive\\Desktop\\Junction2024\\junction2024-websignature-sitra-challange\\PolisBot\\PolisBot\\PolisBot.csproj",
         "packagesPath": "C:\\Users\\meram\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\meram\\OneDrive\\Desktop\\Junction2024\\junction2024-websignature-sitra-challange\\PolisBot\\PolisBot\\obj\\",
+        "outputPath": "c:\\Users\\meram\\OneDrive\\Desktop\\Junction2024\\junction2024-websignature-sitra-challange\\PolisBot\\PolisBot\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

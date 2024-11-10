@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PolisBot")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+440ea1bc53c9b521a2f477b4fb21c0507fbc10a1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3f7e493624d9a20afbff755f7492748b8838ca16")]
 [assembly: System.Reflection.AssemblyProductAttribute("PolisBot")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PolisBot")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
